@@ -20,10 +20,28 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\jsonb\jsonb.h" />
+    <ClInclude Include="..\..\third_party\jsoncpp\include\json\allocator.h" />
+    <ClInclude Include="..\..\third_party\jsoncpp\include\json\assertions.h" />
+    <ClInclude Include="..\..\third_party\jsoncpp\include\json\autolink.h" />
+    <ClInclude Include="..\..\third_party\jsoncpp\include\json\config.h" />
+    <ClInclude Include="..\..\third_party\jsoncpp\include\json\features.h" />
+    <ClInclude Include="..\..\third_party\jsoncpp\include\json\forwards.h" />
+    <ClInclude Include="..\..\third_party\jsoncpp\include\json\json.h" />
+    <ClInclude Include="..\..\third_party\jsoncpp\include\json\reader.h" />
+    <ClInclude Include="..\..\third_party\jsoncpp\include\json\value.h" />
+    <ClInclude Include="..\..\third_party\jsoncpp\include\json\version.h" />
+    <ClInclude Include="..\..\third_party\jsoncpp\include\json\writer.h" />
+    <ClInclude Include="..\..\third_party\jsoncpp\src\lib_json\json_tool.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\jsonb.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\third_party\jsoncpp\src\lib_json\json_reader.cpp" />
+    <ClCompile Include="..\..\third_party\jsoncpp\src\lib_json\json_value.cpp" />
+    <ClCompile Include="..\..\third_party\jsoncpp\src\lib_json\json_writer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\third_party\jsoncpp\src\lib_json\json_valueiterator.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -95,12 +113,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile />
-      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../include;../../third_party/jsoncpp/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -113,12 +131,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile />
-      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../include;../../third_party/jsoncpp/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,12 +151,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile />
-      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../include;../../third_party/jsoncpp/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,12 +173,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile />
-      <AdditionalIncludeDirectories>../../include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../include;../../third_party/jsoncpp/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

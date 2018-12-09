@@ -19,5 +19,20 @@
 
 int main(int argc, char* argv[])
 {
+    jsonb::Document doc;
+    if (doc.Load("{\"key\" : 0.123}"))
+    {
+        const void* bin = doc.GetBinary();
+        size_t bin_size = doc.GetBinarySize();
+
+        printf("binary size: %d\n", (int) bin_size);
+
+        if (doc.Load(bin, bin_size))
+        {
+            std::string json = doc.ToJson();
+
+            printf("json string: %s\n", json.c_str());
+        }
+    }
     return 0;
 }

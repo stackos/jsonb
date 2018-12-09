@@ -17,7 +17,24 @@
 
 #pragma once
 
+#include <json/json.h>
+
 namespace jsonb
 {
+    class Document
+    {
+    public:
+        Document();
+        ~Document();
+        bool Load(const std::string& json);
+        bool Load(const void* binary, size_t size);
+        std::string ToJson();
+        const void* GetBinary() const { return m_binary; }
+        size_t GetBinarySize() const { return m_binary_size; }
 
+    private:
+        Json::Value m_root;
+        void* m_binary;
+        size_t m_binary_size;
+    };
 }
