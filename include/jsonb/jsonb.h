@@ -18,6 +18,7 @@
 #pragma once
 
 #include <json/json.h>
+#include <sstream>
 
 namespace jsonb
 {
@@ -31,6 +32,22 @@ namespace jsonb
         std::string ToJson();
         const void* GetBinary() const { return m_binary; }
         size_t GetBinarySize() const { return m_binary_size; }
+
+    private:
+        void WriteValue(std::ostringstream& os, const Json::Value& value);
+        void WriteObject(std::ostringstream& os, const Json::Value& obj);
+        void WriteArray(std::ostringstream& os, const Json::Value& arr);
+        void WriteInt32(std::ostringstream& os, int32_t i);
+        void WriteUint32(std::ostringstream& os, uint32_t i);
+        void WriteFloat(std::ostringstream& os, float f);
+        void WriteString(std::ostringstream& os, const Json::Value& s);
+        void WriteBool(std::ostringstream& os, bool b);
+        void WriteNull(std::ostringstream& os);
+        template <class T>
+        void Write(std::ostringstream& os, const T& t)
+        {
+            os.write((const char*) &t, sizeof(t));
+        }
 
     private:
         Json::Value m_root;
