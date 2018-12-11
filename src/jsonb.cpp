@@ -223,6 +223,93 @@ namespace jsonb
         }
     }
 
+    Json::Value Document::ReadValue(std::istringstream& is)
+    {
+        Json::Value value;
+
+        ValueType type = (ValueType) this->Read<uint8_t>(is);
+        switch(type)
+        {
+        case ValueType::Object:
+            value = this->ReadObject(is);
+            break;
+        case ValueType::Array:
+            value = this->ReadArray(is);
+            break;
+        case ValueType::String:
+            value = this->ReadString(is);
+            break;
+        case ValueType::Uint8:
+            value = Json::Value((int) this->Read<uint8_t>(is));
+            break;
+        case ValueType::Int8:
+            value = Json::Value((int) this->Read<int8_t>(is));
+            break;
+        case ValueType::Uint16:
+            value = Json::Value((int) this->Read<uint16_t>(is));
+            break;
+        case ValueType::Int16:
+            value = Json::Value((int) this->Read<int16_t>(is));
+            break;
+        case ValueType::Uint32:
+            value = Json::Value(this->Read<uint32_t>(is));
+            break;
+        case ValueType::Int32:
+            value = Json::Value(this->Read<int32_t>(is));
+            break;
+        case ValueType::Float:
+            value = Json::Value(this->Read<float>(is));
+            break;
+        case ValueType::Bool:
+            value = Json::Value(this->Read<int8_t>(is) == 1);
+            break;
+        case ValueType::Null:
+            value = Json::Value(Json::ValueType::nullValue);
+            break;
+        }
+
+        return value;
+    }
+
+    Json::Value Document::ReadObject(std::istringstream& is)
+    {
+        Json::Value value(Json::ValueType::objectValue);
+        
+        int value_count = this->ReadValue(is).asInt();
+        for (int i = 0; i < value_count; ++i)
+        {
+            std::string key = this->ReadValue(is).asString();
+            value[key] = this->ReadValue(is);
+        }
+
+        return value;
+    }
+
+    Json::Value Document::ReadArray(std::istringstream& is)
+    {
+        Json::Value value(Json::ValueType::arrayValue);
+
+        int value_count = this->ReadValue(is).asInt();
+        for (int i = 0; i < value_count; ++i)
+        {
+            value.append(this->ReadValue(is));
+        }
+
+        return value;
+    }
+
+    Json::Value Document::ReadString(std::istringstream& is)
+    {
+        std::string str;
+        int size = this->ReadValue(is).asInt();
+        if (size > 0)
+        {
+            str.resize(size);
+            is.read((char*) &str[0], size);
+        }
+        return Json::Value(str);
+    }
+
     bool Document::Load(const void* binary, size_t size)
     {
         if (binary == nullptr || size == 0)
@@ -241,6 +328,10 @@ namespace jsonb
         memcpy(m_binary, binary, size);
 
         // deserialize stream to root
+        std::string buffer((const char*) m_binary, m_binary_size);
+        std::istringstream is(buffer);
+        
+        m_root = this->ReadValue(is);
 
         return true;
     }

@@ -63,7 +63,12 @@ int main(int argc, char* argv[])
         {
             std::string json = doc.ToJson();
 
-            printf("json string: %s\n", json.c_str());
+            std::ofstream os(output, std::ios::binary | std::ios::out);
+            if (os)
+            {
+                os.write(&json[0], json.size());
+                os.close();
+            }
         }
     }
     else
@@ -72,8 +77,6 @@ int main(int argc, char* argv[])
         {
             const void* bin = doc.GetBinary();
             size_t bin_size = doc.GetBinarySize();
-
-            printf("binary size: %d\n", (int) bin_size);
 
             std::ofstream os(output, std::ios::binary | std::ios::out);
             if (os)

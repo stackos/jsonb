@@ -49,6 +49,18 @@ namespace jsonb
             os.write((const char*) &t, sizeof(t));
         }
 
+        Json::Value ReadValue(std::istringstream& is);
+        Json::Value ReadObject(std::istringstream& is);
+        Json::Value ReadArray(std::istringstream& is);
+        Json::Value ReadString(std::istringstream& is);
+        template <class T>
+        T Read(std::istringstream& is)
+        {
+            T t;
+            is.read((char*) &t, sizeof(t));
+            return t;
+        }
+
     private:
         Json::Value m_root;
         void* m_binary;
