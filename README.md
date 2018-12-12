@@ -1,2 +1,17 @@
 # jsonb
-A bin­ary-en­coded seri­al­iz­a­tion of JSON doc­u­ments.
+A binary-encoded serialization of JSON documents.
+
+## .jsonb vs .json loading time
+
+|file|load time(ms)|size(bytes)|loop count|
+|------|------|------|------|
+|canada.json|12517|2,251,051|100
+|canada.jsonb|2846|723,787|100
+|citm_catalog.json|2334|1,727,204|100
+|citm_catalog.jsonb|1273|438,038|100
+|cat.gltf|3293|1,518,735|100
+|cat.jsonb|2153|731,998|100
+|twitter.json|4606|631,514|500
+|twitter.jsonb|3173|444,596|500
+|DamagedHelmet.gltf|936|4,741|10000
+|DamagedHelmet.jsonb|514|1,716|10000
