@@ -29,6 +29,7 @@ namespace jsonb
         ~Document();
         bool Load(const std::string& json);
         bool Load(const void* binary, size_t size);
+        void ToBinary();
         std::string ToJson();
         const void* GetBinary() const { return m_binary; }
         size_t GetBinarySize() const { return m_binary_size; }
@@ -37,8 +38,8 @@ namespace jsonb
         void WriteValue(std::ostringstream& os, const Json::Value& value);
         void WriteObject(std::ostringstream& os, const Json::Value& obj);
         void WriteArray(std::ostringstream& os, const Json::Value& arr);
-        void WriteInt32(std::ostringstream& os, int32_t i);
-        void WriteUint32(std::ostringstream& os, uint32_t i);
+        void WriteInt64(std::ostringstream& os, int64_t i);
+        void WriteUint64(std::ostringstream& os, uint64_t i);
         void WriteFloat(std::ostringstream& os, float f);
         void WriteString(std::ostringstream& os, const Json::Value& s);
         void WriteBool(std::ostringstream& os, bool b);
@@ -49,10 +50,11 @@ namespace jsonb
             os.write((const char*) &t, sizeof(t));
         }
 
-        Json::Value ReadValue(std::istringstream& is);
-        Json::Value ReadObject(std::istringstream& is);
-        Json::Value ReadArray(std::istringstream& is);
-        Json::Value ReadString(std::istringstream& is);
+        void ReadValue(std::istringstream& is, Json::Value& value);
+        void ReadObject(std::istringstream& is, Json::Value& value);
+        void ReadArray(std::istringstream& is, Json::Value& value);
+        void ReadString(std::istringstream& is, std::string& str);
+        int ReadAsInt(std::istringstream& is);
         template <class T>
         T Read(std::istringstream& is)
         {

@@ -17,6 +17,8 @@
 
 #include <jsonb/jsonb.h>
 #include <fstream>
+#include <chrono>
+#include <thread>
 
 int main(int argc, char* argv[])
 {
@@ -56,9 +58,39 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    jsonb::Document doc;
+#define BENCHMARK 0
+#if BENCHMARK
+    {
+        auto t = std::chrono::system_clock::now();
+
+        if (to_text)
+        {
+            jsonb::Document doc;
+            for (int i = 0; i < 100; ++i)
+            {
+                doc.Load((const void*) &input_buffer[0], input_buffer.size());
+            }
+        }
+        else
+        {
+            jsonb::Document doc;
+            for (int i = 0; i < 100; ++i)
+            {
+                doc.Load(input_buffer);
+            }
+        }
+
+        auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - t).count();
+
+        printf("load time: %d ms", (int) time);
+
+        return 0;
+    }
+#endif
+    
     if (to_text)
     {
+        jsonb::Document doc;
         if (doc.Load((const void*) &input_buffer[0], input_buffer.size()))
         {
             std::string json = doc.ToJson();
@@ -73,8 +105,10 @@ int main(int argc, char* argv[])
     }
     else
     {
+        jsonb::Document doc;
         if (doc.Load(input_buffer))
         {
+            doc.ToBinary();
             const void* bin = doc.GetBinary();
             size_t bin_size = doc.GetBinarySize();
 

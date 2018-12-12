@@ -30,6 +30,8 @@ namespace jsonb
         Int16,
         Uint32,
         Int32,
+        Uint64,
+        Int64,
         Float,
         Bool,
         Null,
@@ -67,10 +69,10 @@ namespace jsonb
             this->WriteString(os, value);
             break;
         case Json::ValueType::intValue:
-            this->WriteInt32(os, value.asInt());
+            this->WriteInt64(os, value.asLargestInt());
             break;
         case Json::ValueType::uintValue:
-            this->WriteUint32(os, value.asUInt());
+            this->WriteUint64(os, value.asLargestUInt());
             break;
         case Json::ValueType::realValue:
             this->WriteFloat(os, value.asFloat());
@@ -89,7 +91,7 @@ namespace jsonb
         this->Write(os, (uint8_t) ValueType::Object);
 
         int value_count = obj.size();
-        this->WriteInt32(os, value_count);
+        this->WriteInt64(os, value_count);
 
         for (auto i = obj.begin(); i != obj.end(); ++i)
         {
@@ -106,7 +108,7 @@ namespace jsonb
         this->Write(os, (uint8_t) ValueType::Array);
 
         int value_count = arr.size();
-        this->WriteInt32(os, value_count);
+        this->WriteInt64(os, value_count);
 
         for (int i = 0; i < value_count; ++i)
         {
@@ -115,42 +117,55 @@ namespace jsonb
         }
     }
 
-    void Document::WriteInt32(std::ostringstream& os, int32_t i)
+    void Document::WriteInt64(std::ostringstream& os, int64_t i)
     {
-        if (i >= -32768 && i <= 32767)
+        if (i >= -2147483648i64 && i <= 2147483647i64)
         {
-            if (i >= -128 && i <= 127)
+            if (i >= -32768 && i <= 32767)
             {
-                this->Write(os, (uint8_t) ValueType::Int8);
-                this->Write(os, (int8_t) i);
+                if (i >= -128 && i <= 127)
+                {
+                    this->Write(os, (uint8_t) ValueType::Int8);
+                    this->Write(os, (int8_t) i);
+                }
+                else if (i >= 128 && i <= 255)
+                {
+                    this->Write(os, (uint8_t) ValueType::Uint8);
+                    this->Write(os, (uint8_t) i);
+                }
+                else
+                {
+                    this->Write(os, (uint8_t) ValueType::Int16);
+                    this->Write(os, (int16_t) i);
+                }
             }
-            else if (i >= 128 && i <= 255)
+            else if (i >= 32768 && i <= 65535)
             {
-                this->Write(os, (uint8_t) ValueType::Uint8);
-                this->Write(os, (uint8_t) i);
+                this->Write(os, (uint8_t) ValueType::Uint16);
+                this->Write(os, (uint16_t) i);
             }
             else
             {
-                this->Write(os, (uint8_t) ValueType::Int16);
-                this->Write(os, (int16_t) i);
+                this->Write(os, (uint8_t) ValueType::Int32);
+                this->Write(os, (int32_t) i);
             }
         }
-        else if (i >= 32768 && i <= 65535)
+        else if (i >= 2147483648i64 && i <= 4294967295i64)
         {
-            this->Write(os, (uint8_t) ValueType::Uint16);
-            this->Write(os, (uint16_t) i);
+            this->Write(os, (uint8_t) ValueType::Uint32);
+            this->Write(os, (uint32_t) i);
         }
         else
         {
-            this->Write(os, (uint8_t) ValueType::Int32);
-            this->Write(os, i);
+            this->Write(os, (uint8_t) ValueType::Int64);
+            this->Write(os, (int64_t) i);
         }
     }
 
-    void Document::WriteUint32(std::ostringstream& os, uint32_t i)
+    void Document::WriteUint64(std::ostringstream& os, uint64_t i)
     {
-        this->Write(os, (uint8_t) ValueType::Uint32);
-        this->Write(os, i);
+        this->Write(os, (uint8_t) ValueType::Uint64);
+        this->Write(os, (uint64_t) i);
     }
 
     void Document::WriteFloat(std::ostringstream& os, float f)
@@ -164,9 +179,9 @@ namespace jsonb
         this->Write(os, (uint8_t) ValueType::String);
 
         std::string str = s.asString();
-        int size = str.length();
+        int size = (int) str.length();
 
-        this->WriteInt32(os, size);
+        this->WriteInt64(os, size);
         if (size > 0)
         {
             os.write(str.c_str(), size);
@@ -193,28 +208,6 @@ namespace jsonb
         const char* end = begin + json.length();
         if (reader->parse(begin, end, &m_root, &errs))
         {
-            std::ostringstream os;
-
-            // serialize root to stream
-            this->WriteValue(os, m_root);
-
-            std::string str = os.str();
-            const void* binary = &str[0];
-            size_t size = str.size();
-
-            if (m_binary)
-            {
-                free(m_binary);
-                m_binary = nullptr;
-            }
-
-            m_binary_size = size;
-            if (size > 0)
-            {
-                m_binary = malloc(size);
-                memcpy(m_binary, binary, size);
-            }
-            
             return true;
         }
         else
@@ -223,91 +216,143 @@ namespace jsonb
         }
     }
 
-    Json::Value Document::ReadValue(std::istringstream& is)
+    void Document::ReadValue(std::istringstream& is, Json::Value& value)
     {
-        Json::Value value;
-
         ValueType type = (ValueType) this->Read<uint8_t>(is);
-        switch(type)
+        switch (type)
         {
-        case ValueType::Object:
-            value = this->ReadObject(is);
-            break;
-        case ValueType::Array:
-            value = this->ReadArray(is);
-            break;
-        case ValueType::String:
-            value = this->ReadString(is);
-            break;
-        case ValueType::Uint8:
-            value = Json::Value((int) this->Read<uint8_t>(is));
-            break;
-        case ValueType::Int8:
-            value = Json::Value((int) this->Read<int8_t>(is));
-            break;
-        case ValueType::Uint16:
-            value = Json::Value((int) this->Read<uint16_t>(is));
-            break;
-        case ValueType::Int16:
-            value = Json::Value((int) this->Read<int16_t>(is));
-            break;
-        case ValueType::Uint32:
-            value = Json::Value(this->Read<uint32_t>(is));
-            break;
-        case ValueType::Int32:
-            value = Json::Value(this->Read<int32_t>(is));
-            break;
-        case ValueType::Float:
-            value = Json::Value(this->Read<float>(is));
-            break;
-        case ValueType::Bool:
-            value = Json::Value(this->Read<int8_t>(is) == 1);
-            break;
-        case ValueType::Null:
-            value = Json::Value(Json::ValueType::nullValue);
-            break;
+            case ValueType::Object:
+                this->ReadObject(is, value);
+                break;
+            case ValueType::Array:
+                this->ReadArray(is, value);
+                break;
+            case ValueType::String:
+            {
+                std::string str;
+                this->ReadString(is, str);
+                break;
+            }
+            case ValueType::Uint8:
+            {
+                Json::Value i((int) this->Read<uint8_t>(is));
+                value.swapPayload(i);
+                break;
+            }
+            case ValueType::Int8:
+            {
+                Json::Value i((int) this->Read<int8_t>(is));
+                value.swapPayload(i);
+                break;
+            }
+            case ValueType::Uint16:
+            {
+                Json::Value i((int) this->Read<uint16_t>(is));
+                value.swapPayload(i);
+                break;
+            }
+            case ValueType::Int16:
+            {
+                Json::Value i((int) this->Read<int16_t>(is));
+                value.swapPayload(i);
+                break;
+            }
+            case ValueType::Uint32:
+            {
+                Json::Value i(this->Read<uint32_t>(is));
+                value.swapPayload(i);
+                break;
+            }
+            case ValueType::Int32:
+            {
+                Json::Value i(this->Read<int32_t>(is));
+                value.swapPayload(i);
+                break;
+            }
+            case ValueType::Uint64:
+            {
+                Json::Value i(this->Read<uint64_t>(is));
+                value.swapPayload(i);
+                break;
+            }
+            case ValueType::Int64:
+            {
+                Json::Value i(this->Read<int64_t>(is));
+                value.swapPayload(i);
+                break;
+            }
+            case ValueType::Float:
+            {
+                Json::Value f(this->Read<float>(is));
+                value.swapPayload(f);
+                break;
+            }
+            case ValueType::Bool:
+            {
+                Json::Value b(this->Read<int8_t>(is) == 1);
+                value.swapPayload(b);
+                break;
+            }
+            case ValueType::Null:
+                break;
         }
-
-        return value;
     }
 
-    Json::Value Document::ReadObject(std::istringstream& is)
+    void Document::ReadObject(std::istringstream& is, Json::Value& value)
     {
-        Json::Value value(Json::ValueType::objectValue);
-        
-        int value_count = this->ReadValue(is).asInt();
+        int value_count = this->ReadAsInt(is);
         for (int i = 0; i < value_count; ++i)
         {
-            std::string key = this->ReadValue(is).asString();
-            value[key] = this->ReadValue(is);
+            std::string key;
+            this->Read<uint8_t>(is);
+            this->ReadString(is, key);
+            this->ReadValue(is, value[key]);
         }
-
-        return value;
     }
 
-    Json::Value Document::ReadArray(std::istringstream& is)
+    void Document::ReadArray(std::istringstream& is, Json::Value& value)
     {
-        Json::Value value(Json::ValueType::arrayValue);
-
-        int value_count = this->ReadValue(is).asInt();
+        int value_count = this->ReadAsInt(is);
+        value.resize(value_count);
         for (int i = 0; i < value_count; ++i)
         {
-            value.append(this->ReadValue(is));
+            this->ReadValue(is, value[i]);
         }
-
-        return value;
     }
 
-    Json::Value Document::ReadString(std::istringstream& is)
+    void Document::ReadString(std::istringstream& is, std::string& str)
     {
-        std::string str;
-        int size = this->ReadValue(is).asInt();
+        int size = this->ReadAsInt(is);
+        str.resize(size);
         if (size > 0)
         {
-            str.resize(size);
             is.read((char*) &str[0], size);
         }
-        return Json::Value(str);
+    }
+
+    int Document::ReadAsInt(std::istringstream& is)
+    {
+        int i = 0;
+        ValueType type = (ValueType) this->Read<uint8_t>(is);
+        switch (type)
+        {
+        case ValueType::Uint8:
+            i = (int) this->Read<uint8_t>(is);
+            break;
+        case ValueType::Int8:
+            i = (int) this->Read<int8_t>(is);
+            break;
+        case ValueType::Uint16:
+            i = (int) this->Read<uint16_t>(is);
+            break;
+        case ValueType::Int16:
+            i = (int) this->Read<int16_t>(is);
+            break;
+        case ValueType::Int32:
+            i = (int) this->Read<int32_t>(is);
+            break;
+        }
+        return i;
     }
 
     bool Document::Load(const void* binary, size_t size)
@@ -317,6 +362,26 @@ namespace jsonb
             return false;
         }
 
+        // deserialize stream to root
+        std::string buffer((const char*) binary, size);
+        std::istringstream is(buffer);
+        
+        this->ReadValue(is, m_root);
+
+        return true;
+    }
+
+    void Document::ToBinary()
+    {
+        std::ostringstream os;
+
+        // serialize root to stream
+        this->WriteValue(os, m_root);
+
+        std::string str = os.str();
+        const void* binary = &str[0];
+        size_t size = str.size();
+
         if (m_binary)
         {
             free(m_binary);
@@ -324,16 +389,11 @@ namespace jsonb
         }
 
         m_binary_size = size;
-        m_binary = malloc(size);
-        memcpy(m_binary, binary, size);
-
-        // deserialize stream to root
-        std::string buffer((const char*) m_binary, m_binary_size);
-        std::istringstream is(buffer);
-        
-        m_root = this->ReadValue(is);
-
-        return true;
+        if (size > 0)
+        {
+            m_binary = malloc(size);
+            memcpy(m_binary, binary, size);
+        }
     }
 
     std::string Document::ToJson()
