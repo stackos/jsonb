@@ -206,14 +206,9 @@ namespace jsonb
         std::string errs;
         const char* begin = json.c_str();
         const char* end = begin + json.length();
-        if (reader->parse(begin, end, &m_root, &errs))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        bool result = reader->parse(begin, end, &m_root, &errs);
+        delete reader;
+        return result;
     }
 
     void Document::ReadValue(std::istringstream& is, Json::Value& value)
